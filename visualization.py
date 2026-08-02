@@ -8,6 +8,10 @@ from typing import Dict, List
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.calibration import calibration_curve
+from sklearn.inspection import permutation_importance
+from sklearn.linear_model import LogisticRegression
+from sklearn.manifold import TSNE
+from sklearn.metrics import ConfusionMatrixDisplay, PrecisionRecallDisplay, RocCurveDisplay, confusion_matrix
 from sklearn.metrics import ConfusionMatrixDisplay, PrecisionRecallDisplay, RocCurveDisplay, confusion_matrix
 from sklearn.inspection import permutation_importance
 from sklearn.linear_model import LogisticRegression
@@ -34,6 +38,7 @@ def plot_history(history: List[Dict[str, float]], config: VisualizationConfig) -
 
 
 def plot_classification(labels: np.ndarray, probabilities: np.ndarray, config: VisualizationConfig) -> List[Path]:
+    """Create ROC, PR, calibration, and confusion matrix plots from model predictions."""
     """Create ROC, PR, calibration, and confusion matrix plots."""
     ensure_dir(config.output_dir)
     paths: List[Path] = []
@@ -64,6 +69,21 @@ def plot_classification(labels: np.ndarray, probabilities: np.ndarray, config: V
     return paths
 
 
+def _embed_latents(latents: np.ndarray, seed: int = 7) -> np.ndarray:
+    """Use UMAP when installed; otherwise use t-SNE for a two-dimensional diagnostic."""
+    try:
+        import umap
+
+        return umap.UMAP(n_components=2, random_state=seed).fit_transform(latents)
+    except ModuleNotFoundError:
+        return TSNE(n_components=2, init="pca", learning_rate="auto", perplexity=30, random_state=seed).fit_transform(latents)
+
+
+def plot_latent(latents: np.ndarray, labels: np.ndarray, config: VisualizationConfig) -> Path:
+    """Plot a two-dimensional latent-space diagnostic."""
+    ensure_dir(config.output_dir)
+    n = min(config.max_points, len(latents))
+    coords = _embed_latents(latents[:n])
 def plot_latent(latents: np.ndarray, labels: np.ndarray, config: VisualizationConfig) -> Path:
     """Plot a two-dimensional latent-space embedding using t-SNE as a UMAP-like diagnostic."""
     ensure_dir(config.output_dir)

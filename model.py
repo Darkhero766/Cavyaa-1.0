@@ -28,6 +28,23 @@ class CavyaaModel(nn.Module):
         self.vae = BetaVAE(config.hidden_dim, config.latent_dim, config.fragment_dim, config.protein_dim)
         self.domain_classifier = DomainClassifier(config.latent_dim, config.hidden_dim, config.n_domains, config.dropout)
         self.recurrence_head = nn.Sequential(
+            nn.LayerNorm(config.latent_dim),
+            nn.Linear(config.latent_dim, config.hidden_dim),
+            nn.GELU(),
+            nn.Dropout(config.dropout),
+            nn.Linear(config.hidden_dim, 1),
+        )
+        self.apply(self._initialize_weights)
+
+    @staticmethod
+    def _initialize_weights(module: nn.Module) -> None:
+        """Initialize linear and embedding layers with stable scales."""
+        if isinstance(module, nn.Linear):
+            nn.init.xavier_uniform_(module.weight)
+            if module.bias is not None:
+                nn.init.zeros_(module.bias)
+        elif isinstance(module, nn.Embedding):
+            nn.init.normal_(module.weight, mean=0.0, std=0.02)
             nn.Linear(config.latent_dim, config.hidden_dim), nn.GELU(), nn.Dropout(config.dropout), nn.Linear(config.hidden_dim, 1)
         )
 

@@ -61,11 +61,18 @@ class TrainConfig:
     test_fraction: float = 0.15
     early_stopping_patience: int = 4
     num_workers: int = 0
+    persistent_workers: bool = False
+    prefetch_factor: int | None = None
+    warmup_epochs: int = 1
+    compile_model: bool = False
+    deterministic: bool = False
     seed: int = 2026
     checkpoint_dir: Path = Path("artifacts/checkpoints")
     log_dir: Path = Path("artifacts/tensorboard")
     use_mixed_precision: bool = True
     min_delta: float = 1e-4
+    resume_from: Path | None = None
+    history_csv: Path = Path("artifacts/training_history.csv")
 
 
 @dataclass(frozen=True)

@@ -12,6 +12,10 @@ class BetaVAE(nn.Module):
     def __init__(self, hidden_dim: int, latent_dim: int, fragment_dim: int, protein_dim: int) -> None:
         """Initialize posterior and decoders."""
         super().__init__()
+        self.posterior_norm = nn.LayerNorm(hidden_dim)
+        self.mu = nn.Linear(hidden_dim, latent_dim)
+        self.logvar = nn.Linear(hidden_dim, latent_dim)
+        self.to_hidden = nn.Sequential(nn.LayerNorm(latent_dim), nn.Linear(latent_dim, hidden_dim), nn.GELU())
         self.mu = nn.Linear(hidden_dim, latent_dim)
         self.logvar = nn.Linear(hidden_dim, latent_dim)
         self.to_hidden = nn.Sequential(nn.Linear(latent_dim, hidden_dim), nn.GELU())
@@ -20,12 +24,16 @@ class BetaVAE(nn.Module):
 
     def reparameterize(self, mu: torch.Tensor, logvar: torch.Tensor) -> torch.Tensor:
         """Sample latent vectors with the reparameterization trick."""
+        std = torch.exp(0.5 * logvar.clamp(-10.0, 10.0))
         std = torch.exp(0.5 * logvar)
         eps = torch.randn_like(std)
         return mu + eps * std
 
     def forward(self, hidden: torch.Tensor) -> dict[str, torch.Tensor]:
         """Return latent sample and reconstructions."""
+        hidden = self.posterior_norm(hidden)
+        mu = self.mu(hidden)
+        logvar = self.logvar(hidden).clamp(-10.0, 10.0)
         mu = self.mu(hidden)
         logvar = self.logvar(hidden).clamp(-8, 8)
         z = self.reparameterize(mu, logvar)
