@@ -1,0 +1,54 @@
+# CAVYAA 1.0
+
+**Tumor-Informed & Timeline-Aware Minimal Residual Disease Tracking**
+
+CAVYAA 1.0 is a research prototype for computational oncology algorithm development. It uses **synthetic data only** and must not be interpreted as clinically validated, medically actionable, or representative of real-world performance.
+
+## What is included
+
+- Synthetic longitudinal cohort generation for 10,000 patients.
+- Cancer types: Neuroblastoma, Glioblastoma, Lung Adenocarcinoma, Osteosarcoma, and Melanoma.
+- Fragmentomics and proteomics features with missingness, noise, inflammation, post-operative decay, recurrence growth, sequencer batch effects, and patient random effects.
+- Tumor-informed PyTorch model with cancer embeddings, fragment/protein/timeline encoders, cross-modal fusion, residual MLP blocks, β-VAE bottleneck, gradient reversal, sequencer domain classifier, and recurrence head.
+- Training loop with AdamW, automatic mixed precision when CUDA is available, gradient clipping, KL annealing, GRL scheduling, early stopping, checkpointing, TensorBoard logging, and cosine learning-rate scheduling.
+- Metrics: ROC AUC, PR AUC, accuracy, sensitivity, specificity, precision, recall, F1, MCC, Brier score, and expected calibration error.
+- Visualizations: loss curves, ROC, PR, calibration, confusion matrix, latent-space diagnostic, and feature importance.
+
+## Quick start
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python train.py
+python infer.py --checkpoint artifacts/checkpoints/best_model.pt
+```
+
+The training command writes checkpoints, metrics, TensorBoard logs, and figures under `artifacts/`.
+
+## Repository layout
+
+| File | Purpose |
+| --- | --- |
+| `config.py` | Dataclass configuration for data, model, loss, training, and visualization. |
+| `synthetic_data.py` | Synthetic longitudinal cohort simulator. |
+| `dataset.py` | PyTorch dataset and dataloader helpers. |
+| `preprocessing.py` | Patient-wise splitting, imputation, and scaling. |
+| `layers.py` | Residual blocks and gradient reversal implementation. |
+| `encoders.py` | Fragmentomics, proteomics, timeline, and cancer encoders. |
+| `fusion.py` | Attention-gated cross-modal fusion. |
+| `vae.py` | β-VAE latent bottleneck and reconstruction heads. |
+| `domain_adaptation.py` | Sequencer domain classifier and GRL schedule. |
+| `model.py` | End-to-end CAVYAA neural network. |
+| `losses.py` | Multi-objective loss and KL schedule. |
+| `metrics.py` | Classification and calibration metrics. |
+| `trainer.py` | Training loop, checkpointing, TensorBoard, and early stopping. |
+| `evaluation.py` | Prediction and metric evaluation helpers. |
+| `visualization.py` | Diagnostic plot generation. |
+| `utils.py` | Reproducibility, logging, JSON, and device helpers. |
+| `train.py` | Full training entry point. |
+| `infer.py` | Checkpoint inference example. |
+
+## Scientific limitations
+
+This repository intentionally avoids clinical claims. The simulator is useful for software testing, representation-learning experiments, and methods prototyping, but synthetic labels and features are generated from simplified assumptions rather than patient observations. Any extension to real clinical data would require rigorous data governance, assay validation, external validation, uncertainty analysis, and clinical review.
