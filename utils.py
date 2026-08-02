@@ -4,6 +4,10 @@ from __future__ import annotations
 
 import csv
 import importlib.util
+"""General utilities for reproducibility, logging, and artifact management."""
+
+from __future__ import annotations
+
 import json
 import logging
 import os
@@ -32,6 +36,20 @@ def set_seed(seed: int, deterministic: bool = False) -> None:
         torch.backends.cudnn.benchmark = False
     else:
         torch.backends.cudnn.benchmark = torch.cuda.is_available()
+from typing import Any, Dict
+
+import numpy as np
+import torch
+
+
+def set_seed(seed: int) -> None:
+    """Seed Python, NumPy, and PyTorch random generators."""
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = False
+    torch.backends.cudnn.benchmark = True
 
 
 def ensure_dir(path: Path | str) -> Path:
@@ -56,6 +74,7 @@ def get_device() -> torch.device:
 
 
 def save_json(payload: Mapping[str, Any], path: Path | str) -> None:
+def save_json(payload: Dict[str, Any], path: Path | str) -> None:
     """Write a JSON file with stable formatting."""
     target = Path(path)
     ensure_dir(target.parent)

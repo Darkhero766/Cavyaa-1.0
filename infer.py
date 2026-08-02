@@ -17,6 +17,16 @@ def require_dependencies(modules: Iterable[str]) -> None:
             + ". Install them with `pip install -r requirements.txt`."
         )
 
+import torch
+
+from config import ExperimentConfig
+from dataset import CavyaaDataset, make_loader
+from evaluation import predict
+from model import CavyaaModel
+from preprocessing import Preprocessor, split_by_patient
+from synthetic_data import load_or_generate
+from utils import get_device
+
 
 def main() -> None:
     """Load a checkpoint and print example synthetic recurrence probabilities."""
@@ -43,6 +53,7 @@ def main() -> None:
         config.train.test_fraction,
         config.train.seed,
     )
+    train_frame, _, test_frame = split_by_patient(frame, config.train.val_fraction, config.train.test_fraction, config.train.seed)
     arrays = Preprocessor.fit(train_frame).transform(test_frame)
     loader = make_loader(CavyaaDataset(arrays), config.train.batch_size, False)
     device = get_device()

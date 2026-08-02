@@ -12,6 +12,10 @@ from sklearn.inspection import permutation_importance
 from sklearn.linear_model import LogisticRegression
 from sklearn.manifold import TSNE
 from sklearn.metrics import ConfusionMatrixDisplay, PrecisionRecallDisplay, RocCurveDisplay, confusion_matrix
+from sklearn.metrics import ConfusionMatrixDisplay, PrecisionRecallDisplay, RocCurveDisplay, confusion_matrix
+from sklearn.inspection import permutation_importance
+from sklearn.linear_model import LogisticRegression
+from sklearn.manifold import TSNE
 
 from config import VisualizationConfig
 from utils import ensure_dir
@@ -35,6 +39,7 @@ def plot_history(history: List[Dict[str, float]], config: VisualizationConfig) -
 
 def plot_classification(labels: np.ndarray, probabilities: np.ndarray, config: VisualizationConfig) -> List[Path]:
     """Create ROC, PR, calibration, and confusion matrix plots from model predictions."""
+    """Create ROC, PR, calibration, and confusion matrix plots."""
     ensure_dir(config.output_dir)
     paths: List[Path] = []
     for name, display in [("roc.png", RocCurveDisplay.from_predictions), ("pr.png", PrecisionRecallDisplay.from_predictions)]:
@@ -79,6 +84,11 @@ def plot_latent(latents: np.ndarray, labels: np.ndarray, config: VisualizationCo
     ensure_dir(config.output_dir)
     n = min(config.max_points, len(latents))
     coords = _embed_latents(latents[:n])
+def plot_latent(latents: np.ndarray, labels: np.ndarray, config: VisualizationConfig) -> Path:
+    """Plot a two-dimensional latent-space embedding using t-SNE as a UMAP-like diagnostic."""
+    ensure_dir(config.output_dir)
+    n = min(config.max_points, len(latents))
+    coords = TSNE(n_components=2, init="pca", learning_rate="auto", perplexity=30).fit_transform(latents[:n])
     path = config.output_dir / "latent_space.png"
     plt.figure(figsize=(6, 5))
     plt.scatter(coords[:, 0], coords[:, 1], c=labels[:n], s=6, cmap="coolwarm", alpha=0.7)

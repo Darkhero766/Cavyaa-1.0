@@ -46,3 +46,12 @@ def cavyaa_loss(
         "kl": float(kl.detach()),
         "domain": float(domain.detach()),
     }
+    pos_weight = torch.tensor(config.positive_class_weight, device=batch["label"].device)
+    cls = F.binary_cross_entropy_with_logits(outputs["recurrence_logit"], batch["label"], pos_weight=pos_weight)
+    recon = F.mse_loss(outputs["fragment_reconstruction"], batch["fragment"]) + F.mse_loss(
+        outputs["protein_reconstruction"], batch["protein"]
+    )
+    kl = -0.5 * torch.mean(1 + outputs["logvar"] - outputs["mu"].pow(2) - outputs["logvar"].exp())
+    domain = F.cross_entropy(outputs["domain_logit"], batch["domain"])
+    total = cls + config.reconstruction_weight * recon + beta * kl + config.domain_weight * domain
+    return total, {"loss": float(total.detach()), "classification": float(cls.detach()), "reconstruction": float(recon.detach()), "kl": float(kl.detach()), "domain": float(domain.detach())}
