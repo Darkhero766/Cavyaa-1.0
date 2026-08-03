@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>CAVYAA — Your Journey</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<div class="app-shell">
+  <div class="phone-frame" style="overflow-y:auto; padding-bottom:80px;">
+
+    <!-- Top greeting -->
+    <div class="top-bar anim-fade-up">
+      <div class="greeting">
+        <div class="greeting-name">Hello, {{ patient.name.split()[0] }} 👋</div>
+        <div class="greeting-sub">You're on track…</div>
+      </div>
+      <a href="/logout" class="avatar-btn" title="Sign out">
+        {{ patient.name[0] }}
+      </a>
+    </div>
+
+    <!-- Score ring -->
+    <div class="score-area anim-fade-up delay-1">
+      <div class="score-ring-wrap">
+        <svg class="score-ring-svg" width="160" height="160" viewBox="0 0 160 160">
+          <circle class="score-ring-track" cx="80" cy="80" r="70"/>
+          <circle class="score-ring-fill" cx="80" cy="80" r="70"
+            data-score="{{ patient.wellness_score }}"/>
+        </svg>
+        <div class="score-inner">
+          <div class="score-icon">💙</div>
+          <div class="score-label-top">Stay Strong<br>Keep Going</div>
+          <div class="score-number">{{ patient.wellness_score }}</div>
+          <div class="score-label-bot">Wellness Level</div>
+        </div>
+      </div>
+      <div class="score-dots">
+        <div class="score-dot active"></div>
+        <div class="score-dot"></div>
+        <div class="score-dot"></div>
+      </div>
+    </div>
+
+    <!-- Week strip -->
+    <div class="week-strip anim-fade-up delay-2">
+      {% for day in week %}
+      <div class="week-day {{ 'today' if day.active else ('past' if day.past else '') }}">
+        <div class="week-day-label">{{ day.label }}</div>
+        <div class="week-day-dot">{{ '✓' if day.past else '' }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- White sheet -->
+    <div class="sheet">
+      <div class="sheet-inner">
+
+        <!-- Today header -->
+        <div class="section-header anim-fade-up delay-2">
+          <div>
+            <div class="section-title">Today</div>
+            <div class="section-date">{{ today }}</div>
+          </div>
+          <span style="font-size:22px">📅</span>
+        </div>
+
+        <!-- Journey progress card -->
+        <div class="journey-card anim-fade-up delay-3">
+          <div class="journey-card-label">Your Journey</div>
+          <div class="journey-card-title">Week {{ patient.weeks_post_op }} of recovery</div>
+          <div class="journey-card-sub">{{ patient.cancer_type }} · {{ patient.draws }} blood draws completed</div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" data-pct="{{ [patient.weeks_post_op, 104] | min * 100 // 104 }}"></div>
+          </div>
+          <div class="progress-labels">
+            <span>Week 0</span>
+            <span>You are here! 🏃</span>
+            <span>Week 104</span>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Motivational messages -->
+        <div class="section-header anim-fade-up delay-3">
+          <div class="section-title">For You Today</div>
+        </div>
+
+        {% set icons = [('💙','blue'), ('🌿','green'), ('✨','gold')] %}
+        {% for msg in messages %}
+        <div class="message-card {{ icons[loop.index0][1] }} anim-fade-up delay-{{ loop.index + 2 }}">
+          <div class="message-icon {{ icons[loop.index0][1] }}">{{ icons[loop.index0][0] }}</div>
+          <div class="message-text">{{ msg }}</div>
+        </div>
+        {% endfor %}
+
+        <div class="divider"></div>
+
+        <!-- Snapshot card -->
+        <div class="section-title anim-fade-up delay-4" style="margin-bottom:12px">Your Health Snapshot</div>
+
+        <div class="card anim-fade-up delay-4">
+          <div class="card-label">Wellness Score</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;">
+            <div class="card-title" style="font-size:32px;font-weight:900;color:var(--blue-mid)">
+              {{ patient.wellness_score }}<span style="font-size:16px;font-weight:500;color:var(--text-soft)">/100</span>
+            </div>
+            <div>
+              {% if patient.trend == 'improving' %}
+                <span style="font-size:13px;font-weight:700;color:#10B981">↑ Improving</span>
+              {% elif patient.trend == 'declining' %}
+                <span style="font-size:13px;font-weight:700;color:#EF4444">↓ Needs attention</span>
+              {% else %}
+                <span style="font-size:13px;font-weight:700;color:#6B7280">→ Stable</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="progress-bar-wrap" style="margin-top:12px;">
+            <div class="progress-bar-fill" data-pct="{{ patient.wellness_score }}"
+              style="background: {% if patient.wellness_score >= 80 %}#10B981{% elif patient.wellness_score >= 60 %}#F59E0B{% else %}#EF4444{% endif %};">
+            </div>
+          </div>
+          <div class="card-sub" style="margin-top:8px;">Last draw: {{ patient.last_draw }}</div>
+        </div>
+
+        <div class="card anim-fade-up delay-5">
+          <div class="card-label">Your Next Step</div>
+          <div class="card-title">Stay connected with your care team</div>
+          <div class="card-sub">Your doctor is monitoring your signals closely. Keep attending your scheduled draws.</div>
+        </div>
+
+        <!-- Disclaimer -->
+        <div style="margin-top:20px; padding:14px; background:#F0F4FF; border-radius:14px; font-size:11px; color:var(--text-pale); line-height:1.5;" class="anim-fade-up delay-5">
+          ⚠️ CAVYAA 1.0 uses synthetic research data only. Not clinically validated. Always follow your doctor's advice.
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- phone-frame -->
+</div><!-- app-shell -->
+
+<!-- Bottom nav -->
+<div class="bottom-nav">
+  <a href="/patient" class="nav-item active">
+    <span class="nav-icon">🏠</span>
+    Home
+  </a>
+  <a href="#" class="nav-item">
+    <span class="nav-icon">📋</span>
+    Journey
+  </a>
+  <a href="#" class="nav-item">
+    <span class="nav-add">+</span>
+  </a>
+  <a href="#" class="nav-item">
+    <span class="nav-icon">📊</span>
+    Stats
+  </a>
+  <a href="/logout" class="nav-item">
+    <span class="nav-icon">👤</span>
+    Profile
+  </a>
+</div>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>

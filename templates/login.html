@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>CAVYAA — {{ 'Doctor Login' if role == 'doctor' else 'Patient Login' }}</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<div class="app-shell">
+  <div class="phone-frame">
+    <div class="login-page anim-fade-in">
+      <a href="/" class="back-btn">←</a>
+
+      <div class="anim-fade-up">
+        {% if role == 'doctor' %}
+          <div style="font-size:42px;margin-top:32px">🔬</div>
+          <h1 class="login-title" style="margin-top:12px">Doctor<br>Portal</h1>
+          <p class="login-sub">Full analysis & patient monitoring</p>
+        {% else %}
+          <div style="font-size:42px;margin-top:32px">💙</div>
+          <h1 class="login-title" style="margin-top:12px">Welcome<br>Back</h1>
+          <p class="login-sub">Your healing journey continues</p>
+        {% endif %}
+      </div>
+
+      <form class="login-form anim-fade-up delay-1" method="POST" action="/login">
+        <input type="hidden" name="role" value="{{ role }}">
+
+        {% if error %}
+        <div class="error-msg">{{ error }}</div>
+        {% endif %}
+
+        <div class="input-group">
+          <label>{{ 'Email or Username' if role == 'doctor' else 'Your Name' }}</label>
+          <input type="text" name="username"
+            placeholder="{{ 'doctor' if role == 'doctor' else 'olivia' }}"
+            autocomplete="username" required>
+        </div>
+
+        <div class="input-group">
+          <label>Password</label>
+          <input type="password" name="password"
+            placeholder="••••••••"
+            autocomplete="current-password" required>
+        </div>
+
+        <div class="demo-hint">
+          {% if role == 'doctor' %}
+            Demo: <code>doctor</code> / <code>demo1234</code>
+          {% else %}
+            Demo patients: <code>olivia</code>, <code>marcus</code>, <code>sofia</code>, <code>david</code>, <code>amara</code> — all use password <code>hello</code>
+          {% endif %}
+        </div>
+
+        <button type="submit" class="btn-primary" style="margin-top:8px">
+          {{ 'Access Portal' if role == 'doctor' else 'Continue My Journey' }}
+        </button>
+      </form>
+
+      <div style="margin-top:auto; padding-top:32px; text-align:center">
+        {% if role == 'doctor' %}
+          <a href="/select/patient" class="btn-secondary-link">Switch to Patient View</a>
+        {% else %}
+          <a href="/select/doctor" class="btn-secondary-link">I'm a Doctor →</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

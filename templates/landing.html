@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>CAVYAA — Healing Journey</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<div class="app-shell">
+  <div class="phone-frame">
+    <div class="landing-hero anim-fade-in">
+      <div class="landing-logo">
+        <div class="dot"></div>
+        CAVYAA 1.0
+      </div>
+
+      <div>
+        <h1 class="landing-headline anim-fade-up">
+          <span>Let's make</span><br>
+          your days<br>
+          healthier
+        </h1>
+        <p class="landing-sub anim-fade-up delay-1">No Rushing. Only your feelings.</p>
+
+        <div class="role-pills anim-fade-up delay-2" id="rolePills">
+          <button class="role-pill" data-role="patient" onclick="selectRole('patient')">🫀 Patient journey</button>
+          <button class="role-pill" data-role="doctor" onclick="selectRole('doctor')">🔬 Doctor portal</button>
+          <button class="role-pill" onclick="selectRole('patient')">📈 Track signals</button>
+          <button class="role-pill" onclick="selectRole('patient')">💙 Stay strong</button>
+        </div>
+      </div>
+
+      <div class="landing-actions anim-fade-up delay-3">
+        <a href="/select/patient" id="ctaBtn" class="btn-primary">Get Started</a>
+        <a href="/select/doctor" class="btn-secondary-link">I'm a Doctor →</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function selectRole(role) {
+  document.querySelectorAll('.role-pill').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  const btn = document.getElementById('ctaBtn');
+  if (role === 'doctor') {
+    btn.href = '/select/doctor';
+    btn.textContent = 'Enter Doctor Portal';
+  } else {
+    btn.href = '/select/patient';
+    btn.textContent = 'Start My Journey';
+  }
+}
+</script>
+</body>
+</html>

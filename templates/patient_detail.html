@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>CAVYAA — {{ patient.name }}</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<div class="app-shell">
+  <div class="phone-frame" style="overflow-y:auto;">
+    <div class="doctor-shell">
+
+      <!-- Top bar -->
+      <div class="doctor-top anim-fade-up">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <a href="/doctor" class="back-btn">←</a>
+          <div class="doctor-greeting">
+            <div class="doctor-greeting-name">{{ patient.name }}</div>
+            <div class="doctor-greeting-sub">{{ patient.cancer_type }} · ID {{ patient.id }}</div>
+          </div>
+        </div>
+        <div class="patient-avatar bg-{{ patient.risk_level }}" style="width:42px;height:42px;font-size:15px;">
+          {{ patient.name[0] }}
+        </div>
+      </div>
+
+      <!-- Score + week -->
+      <div class="score-area anim-fade-up delay-1">
+        <div class="score-ring-wrap">
+          <svg class="score-ring-svg" width="160" height="160" viewBox="0 0 160 160">
+            <circle class="score-ring-track" cx="80" cy="80" r="70"/>
+            <circle class="score-ring-fill" cx="80" cy="80" r="70"
+              data-score="{{ patient.wellness_score }}"/>
+          </svg>
+          <div class="score-inner">
+            <div class="score-icon">🔬</div>
+            <div class="score-label-top">Wellness<br>Score</div>
+            <div class="score-number">{{ patient.wellness_score }}</div>
+            <div class="score-label-bot">
+              <span class="risk-badge risk-{{ patient.risk_level }}" style="display:inline-block;">
+                {{ patient.risk_level | title }} Risk
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- White sheet -->
+      <div class="doctor-sheet anim-scale-in delay-1">
+
+        <!-- Quick facts -->
+        <div class="section-header">
+          <div class="section-title">Patient Details</div>
+          <span style="font-size:12px;color:var(--text-soft);">{{ today }}</span>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+          <div class="metric-tile">
+            <div class="metric-tile-val">{{ patient.age }}</div>
+            <div class="metric-tile-lbl">Age</div>
+          </div>
+          <div class="metric-tile">
+            <div class="metric-tile-val">Wk {{ patient.weeks_post_op }}</div>
+            <div class="metric-tile-lbl">Post-Op Week</div>
+          </div>
+          <div class="metric-tile">
+            <div class="metric-tile-val">{{ patient.draws }}</div>
+            <div class="metric-tile-lbl">Blood Draws</div>
+          </div>
+          <div class="metric-tile">
+            <div class="metric-tile-val">{{ (patient.recurrence_prob * 100) | int }}%</div>
+            <div class="metric-tile-lbl">Recurrence Prob.</div>
+          </div>
+        </div>
+
+        <!-- Signal analysis -->
+        <div class="divider"></div>
+        <div class="section-title" style="margin-bottom:12px;">Signal Analysis</div>
+
+        <div class="detail-metric-grid">
+          {% set m = patient.metrics %}
+
+          <div class="metric-tile">
+            <div class="metric-tile-val">{{ "%.3f"|format(m.roc_auc) }}</div>
+            <div class="metric-tile-lbl">ROC AUC</div>
+            <div class="metric-bar-wrap">
+              <div class="metric-bar-fill bar-blue" data-pct="{{ (m.roc_auc * 100) | int }}"></div>
+            </div>
+          </div>
+
+          <div class="metric-tile">
+            <div class="metric-tile-val">{{ "%.3f"|format(m.sensitivity) }}</div>
+            <div class="metric-tile-lbl">Sensitivity</div>
+            <div class="metric-bar-wrap">
+              <div class="metric-bar-fill bar-green" data-pct="{{ (m.sensitivity * 100) | int }}"></div>
+            </div>
+          </div>
+
+          <div class="metric-tile">
+            <div class="metric-tile-val">{{ "%.3f"|format(m.specificity) }}</div>
+            <div class="metric-tile-lbl">Specificity</div>
+            <div class="metric-bar-wrap">
+              <div class="metric-bar-fill bar-green" data-pct="{{ (m.specificity * 100) | int }}"></div>
+            </div>
+          </div>
+
+          <div class="metric-tile">
+            <div class="metric-tile-val">{{ "%.2f"|format(m.fragment_signal) }}</div>
+            <div class="metric-tile-lbl">Fragment Signal</div>
+            <div class="metric-bar-wrap">
+              <div class="metric-bar-fill {{ 'bar-red' if m.fragment_signal > 0.6 else ('bar-orange' if m.fragment_signal > 0.3 else 'bar-green') }}"
+                   data-pct="{{ (m.fragment_signal * 100) | int }}"></div>
+            </div>
+          </div>
+
+          <div class="metric-tile">
+            <div class="metric-tile-val">{{ "%.2f"|format(m.protein_signal) }}</div>
+            <div class="metric-tile-lbl">Protein Signal</div>
+            <div class="metric-bar-wrap">
+              <div class="metric-bar-fill {{ 'bar-red' if m.protein_signal > 0.6 else ('bar-orange' if m.protein_signal > 0.3 else 'bar-green') }}"
+                   data-pct="{{ (m.protein_signal * 100) | int }}"></div>
+            </div>
+          </div>
+
+          <div class="metric-tile">
+            <div class="metric-tile-val">{{ "%.2f"|format(m.inflammation) }}</div>
+            <div class="metric-tile-lbl">Inflammation</div>
+            <div class="metric-bar-wrap">
+              <div class="metric-bar-fill {{ 'bar-red' if m.inflammation > 0.3 else ('bar-orange' if m.inflammation > 0.15 else 'bar-green') }}"
+                   data-pct="{{ (m.inflammation * 100) | int }}"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Trend -->
+        <div class="divider"></div>
+        <div class="card" style="border-left:4px solid {{ '#10B981' if patient.trend == 'improving' else ('#EF4444' if patient.trend == 'declining' else '#6B7280') }}">
+          <div class="card-label">Trend</div>
+          <div class="card-title" style="display:flex;align-items:center;gap:8px;">
+            {{ '↑' if patient.trend == 'improving' else ('↓' if patient.trend == 'declining' else '→') }}
+            {{ patient.trend | title }}
+          </div>
+          <div class="card-sub">Last draw: {{ patient.last_draw }}</div>
+        </div>
+
+        <!-- Clinical notes -->
+        <div class="card" style="margin-top:10px;">
+          <div class="card-label">Clinical Notes</div>
+          <div class="card-sub" style="font-size:14px;color:var(--text-dark);margin-top:4px;line-height:1.6;">
+            {{ patient.notes }}
+          </div>
+        </div>
+
+        <!-- Recurrence risk -->
+        <div class="journey-card" style="margin-top:10px;">
+          <div class="journey-card-label">Recurrence Probability</div>
+          <div class="journey-card-title">{{ (patient.recurrence_prob * 100) | int }}% synthetic estimate</div>
+          <div class="journey-card-sub">Based on CAVYAA model output — research use only</div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" data-pct="{{ (patient.recurrence_prob * 100) | int }}"
+              style="background:{{ 'rgba(239,68,68,0.9)' if patient.recurrence_prob > 0.4 else ('rgba(245,158,11,0.9)' if patient.recurrence_prob > 0.2 else 'white') }};"></div>
+          </div>
+          <div class="progress-labels">
+            <span>Low risk</span>
+            <span>High risk</span>
+          </div>
+        </div>
+
+        <div style="margin-top:14px; padding:14px; background:#FEF2F2; border-radius:14px; font-size:11px; color:#991B1B; line-height:1.5;">
+          ⚠️ All metrics are synthetic research outputs. Not for clinical decision-making.
+        </div>
+
+        <div style="height:20px;"></div>
+      </div><!-- doctor-sheet -->
+    </div><!-- doctor-shell -->
+  </div><!-- phone-frame -->
+</div><!-- app-shell -->
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>

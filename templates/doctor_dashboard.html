@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>CAVYAA — Doctor Portal</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<div class="app-shell" style="min-height:100vh;">
+  <div class="phone-frame" style="overflow-y:auto;">
+    <div class="doctor-shell">
+
+      <!-- Doctor top bar -->
+      <div class="doctor-top anim-fade-up">
+        <div class="doctor-greeting">
+          <div style="font-size:12px;color:rgba(255,255,255,0.5);font-weight:600;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:4px;">CAVYAA Portal</div>
+          <div class="doctor-greeting-name">Patient Overview</div>
+          <div class="doctor-greeting-sub">{{ total }} patients · Model AUC {{ avg_auc }}</div>
+        </div>
+        <a href="/logout" class="logout-btn">Sign out</a>
+      </div>
+
+      <!-- Stats row -->
+      <div class="stats-row anim-fade-up delay-1">
+        <div class="stat-card">
+          <div class="stat-num">{{ total }}</div>
+          <div class="stat-lbl">Total</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" style="color:#FCA5A5;">{{ high_risk }}</div>
+          <div class="stat-lbl">High Risk</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" style="color:#FDE68A;">{{ medium_risk }}</div>
+          <div class="stat-lbl">Monitor</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">{{ avg_score }}</div>
+          <div class="stat-lbl">Avg Score</div>
+        </div>
+      </div>
+
+      <!-- White sheet -->
+      <div class="doctor-sheet anim-scale-in delay-1">
+
+        <!-- Filters -->
+        <div class="section-header" style="margin-bottom:12px;">
+          <div class="section-title">Patients</div>
+          <span style="font-size:12px;color:var(--text-soft);">Tap to view analysis</span>
+        </div>
+
+        <div class="filter-row">
+          <button class="filter-chip active" data-filter="all" data-group="risk">All</button>
+          <button class="filter-chip" data-filter="high" data-group="risk">🔴 High Risk</button>
+          <button class="filter-chip" data-filter="medium" data-group="risk">🟡 Monitor</button>
+          <button class="filter-chip" data-filter="low" data-group="risk">🟢 Stable</button>
+        </div>
+
+        <!-- Patient cards -->
+        {% for p in patients %}
+        <a href="/doctor/patient/{{ p.id }}" class="patient-card anim-fade-up delay-{{ loop.index }}"
+           data-risk="{{ p.risk_level }}">
+          <div class="patient-avatar bg-{{ p.risk_level }}">
+            {{ p.name[0] }}
+          </div>
+          <div class="patient-info">
+            <div class="patient-name">{{ p.name }}</div>
+            <div class="patient-meta">
+              {{ p.cancer_type }} · Wk {{ p.weeks_post_op }}
+            </div>
+            <span class="risk-badge risk-{{ p.risk_level }}">
+              {{ p.risk_level | title }} Risk
+            </span>
+            <span class="trend-arrow {{ 'trend-up' if p.trend == 'improving' else ('trend-down' if p.trend == 'declining' else 'trend-flat') }}">
+              {{ '↑' if p.trend == 'improving' else ('↓' if p.trend == 'declining' else '→') }}
+              {{ p.trend | title }}
+            </span>
+          </div>
+          <div class="patient-score-wrap">
+            <div class="patient-score">{{ p.wellness_score }}</div>
+            <div class="patient-score-lbl">Score</div>
+          </div>
+        </a>
+        {% endfor %}
+
+        <!-- Model info -->
+        <div class="divider"></div>
+        <div class="card" style="background:linear-gradient(135deg,#0D47A1,#1E88E5);color:white;">
+          <div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:rgba(255,255,255,0.65);">Model Performance</div>
+          <div style="font-size:18px;font-weight:800;margin-top:6px;">CAVYAA 1.0 — Research Prototype</div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:4px;line-height:1.5;">
+            Synthetic data only · Mean ROC AUC {{ avg_auc }}<br>
+            β-VAE + Cross-modal fusion · 5 cancer types
+          </div>
+          <div style="margin-top:14px;display:flex;gap:16px;">
+            <div>
+              <div style="font-size:20px;font-weight:900;">{{ avg_auc }}</div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.04em;">Mean AUC</div>
+            </div>
+            <div>
+              <div style="font-size:20px;font-weight:900;">5</div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.04em;">Cancer Types</div>
+            </div>
+            <div>
+              <div style="font-size:20px;font-weight:900;">10k</div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.04em;">Synthetic Pts</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:14px; padding:14px; background:#FEF2F2; border-radius:14px; font-size:11px; color:#991B1B; line-height:1.5;">
+          ⚠️ CAVYAA 1.0 uses synthetic research data only. Not for clinical use. All metrics are algorithm-development outputs, not clinical diagnoses.
+        </div>
+
+      </div><!-- doctor-sheet -->
+    </div><!-- doctor-shell -->
+  </div><!-- phone-frame -->
+</div><!-- app-shell -->
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>

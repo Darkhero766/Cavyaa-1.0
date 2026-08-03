@@ -16,3 +16,5 @@ scikit-learn
 tensorboard
 torch
 umap-learn
+flask
+flask-session
