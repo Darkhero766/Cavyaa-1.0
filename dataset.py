@@ -55,15 +55,3 @@ def make_loader(
     if num_workers > 0 and prefetch_factor is not None:
         kwargs["prefetch_factor"] = prefetch_factor
     return DataLoader(dataset, **kwargs)
-            "fragment": torch.from_numpy(self.arrays["fragment"][index]),
-            "protein": torch.from_numpy(self.arrays["protein"][index]),
-            "timeline": torch.from_numpy(self.arrays["timeline"][index]),
-            "cancer": torch.tensor(self.arrays["cancer"][index], dtype=torch.long),
-            "domain": torch.tensor(self.arrays["domain"][index], dtype=torch.long),
-            "label": torch.tensor(self.arrays["label"][index], dtype=torch.float32),
-        }
-
-
-def make_loader(dataset: CavyaaDataset, batch_size: int, shuffle: bool, num_workers: int = 0) -> DataLoader:
-    """Create a dataloader with pinned memory when CUDA is available."""
-    return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers, pin_memory=torch.cuda.is_available())

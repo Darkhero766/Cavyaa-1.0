@@ -5,9 +5,6 @@ mathematical assumptions--post-operative signal decay, optional synthetic
 recurrence growth, transient inflammation, low-rank feature correlations,
 patient random effects, sequencer batch effects, measurement noise, and missing
 values--without claiming clinical validity or biological realism.
-biological motifs--post-operative decay, recurrence growth, inflammation,
-patient random effects, sequencer batch effects, measurement noise, and missing
-values--without claiming clinical validity.
 """
 
 from __future__ import annotations
@@ -26,7 +23,6 @@ from utils import ensure_dir
 @dataclass
 class SyntheticTemplates:
     """Latent templates controlling synthetic cancer, batch, and correlation signatures."""
-    """Latent templates controlling synthetic cancer and batch signatures."""
 
     cancer_fragment: np.ndarray
     cancer_protein: np.ndarray
@@ -45,12 +41,6 @@ def _smooth_random_matrix(rng: np.random.Generator, rows: int, cols: int, scale:
 
 
 def _make_templates(config: DataConfig, rng: np.random.Generator) -> SyntheticTemplates:
-    """Construct feature templates for cancers, inflammation, batches, and correlations."""
-    cancer_fragment = _smooth_random_matrix(rng, len(config.cancer_types), config.fragment_dim, 1.0)
-    cancer_protein = _smooth_random_matrix(rng, len(config.cancer_types), config.protein_dim, 1.0)
-
-
-def _make_templates(config: DataConfig, rng: np.random.Generator) -> SyntheticTemplates:
     """Construct smooth feature templates for cancers, inflammation, and batches."""
     cancer_fragment = rng.normal(0.0, 0.7, (len(config.cancer_types), config.fragment_dim))
     cancer_protein = rng.normal(0.0, 0.7, (len(config.cancer_types), config.protein_dim))
@@ -62,8 +52,6 @@ def _make_templates(config: DataConfig, rng: np.random.Generator) -> SyntheticTe
     sequencer_protein = _smooth_random_matrix(rng, len(config.sequencers), config.protein_dim, 0.18)
     fragment_loadings = rng.normal(0, 0.45, (6, config.fragment_dim))
     protein_loadings = rng.normal(0, 0.45, (6, config.protein_dim))
-    sequencer_fragment = rng.normal(0, 0.22, (len(config.sequencers), config.fragment_dim))
-    sequencer_protein = rng.normal(0, 0.12, (len(config.sequencers), config.protein_dim))
     return SyntheticTemplates(
         cancer_fragment=cancer_fragment,
         cancer_protein=cancer_protein,
@@ -90,14 +78,6 @@ def _missing_probability(week: float, inflammation: float, base_rate: float) -> 
     return float(np.clip(base_rate + time_component + inflammation_component, 0.0, 0.25))
 
 
-def generate_synthetic_cohort(config: DataConfig | None = None) -> pd.DataFrame:
-    """Generate a complete synthetic longitudinal monitoring table.
-
-    Each row is a blood draw. Assumptions are deliberately simple: patient-level
-    latent factors drive correlated features; post-operative signal decays over
-    time; recurrence-positive patients may develop a monotone synthetic growth
-    signal after an unobserved recurrence week; inflammation is transient; and
-    sequencer effects shift all draws from a patient processed on that instrument.
 def generate_synthetic_cohort(config: DataConfig | None = None) -> pd.DataFrame:
     """Generate a complete synthetic longitudinal monitoring table.
 
@@ -135,16 +115,6 @@ def generate_synthetic_cohort(config: DataConfig | None = None) -> pd.DataFrame:
             ar_fragment = 0.72 * ar_fragment + rng.normal(0, 0.10, cfg.fragment_dim)
             ar_protein = 0.72 * ar_protein + rng.normal(0, 0.10, cfg.protein_dim)
             heteroscedastic = 0.24 + 0.05 * abs(tumor_signal) + 0.04 * inflammation
-        patient_fragment = rng.normal(0, 0.33, cfg.fragment_dim)
-        patient_protein = rng.normal(0, 0.33, cfg.protein_dim)
-        inflammation_peak = float(rng.uniform(2, 14))
-
-        for draw_number, week in enumerate(weeks):
-            decay = np.exp(-week / rng.uniform(9, 18))
-            growth = recurrence * max(0.0, week - recurrence_week) / 38.0
-            growth = min(growth, 2.8)
-            inflammation = np.exp(-((week - inflammation_peak) ** 2) / (2 * 9.0**2))
-            tumor_signal = (0.95 * decay + 1.15 * growth + 0.18 * burden)
             frag = (
                 tumor_signal * templates.cancer_fragment[cancer_index]
                 + 0.5 * inflammation * templates.inflammation_fragment
@@ -152,7 +122,6 @@ def generate_synthetic_cohort(config: DataConfig | None = None) -> pd.DataFrame:
                 + patient_fragment
                 + ar_fragment
                 + rng.normal(0, heteroscedastic, cfg.fragment_dim)
-                + rng.normal(0, 0.34, cfg.fragment_dim)
             )
             prot = (
                 0.85 * tumor_signal * templates.cancer_protein[cancer_index]
@@ -161,7 +130,6 @@ def generate_synthetic_cohort(config: DataConfig | None = None) -> pd.DataFrame:
                 + patient_protein
                 + ar_protein
                 + rng.normal(0, heteroscedastic * 0.9, cfg.protein_dim)
-                + rng.normal(0, 0.31, cfg.protein_dim)
             )
             row: Dict[str, float | int | str] = {
                 "patient_id": f"CAVYAA-{patient_idx:05d}",
@@ -172,8 +140,6 @@ def generate_synthetic_cohort(config: DataConfig | None = None) -> pd.DataFrame:
                 "sequencer": cfg.sequencers[sequencer_index],
                 "sequencer_index": sequencer_index,
                 "recurrence_label": recurrence,
-                "synthetic_tumor_signal": tumor_signal,
-                "synthetic_inflammation": inflammation,
                 "synthetic_tumor_signal": float(tumor_signal),
                 "synthetic_inflammation": float(inflammation),
             }
@@ -187,7 +153,6 @@ def generate_synthetic_cohort(config: DataConfig | None = None) -> pd.DataFrame:
         [_missing_probability(week, infl, cfg.missing_rate) for week, infl in zip(frame["weeks_post_operation"], frame["synthetic_inflammation"])]
     )[:, None]
     mask = rng.random((len(frame), len(feature_cols))) < probabilities
-    mask = rng.random((len(frame), len(feature_cols))) < cfg.missing_rate
     frame.loc[:, feature_cols] = frame.loc[:, feature_cols].mask(mask)
     return frame
 
@@ -200,8 +165,6 @@ def load_or_generate(config: DataConfig | None = None, force: bool = False) -> p
         return pd.read_parquet(cfg.cache_path)
     if csv_path.exists() and not force:
         return pd.read_csv(csv_path)
-    if cfg.cache_path.exists() and not force:
-        return pd.read_parquet(cfg.cache_path)
     frame = generate_synthetic_cohort(cfg)
     ensure_dir(cfg.cache_path.parent)
     try:

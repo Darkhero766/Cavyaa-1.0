@@ -11,7 +11,10 @@ without making clinical or performance claims.
 from __future__ import annotations
 
 import importlib.util
+import json
 import logging
+import math
+from pathlib import Path
 from typing import Iterable
 
 LOGGER = logging.getLogger(__name__)
@@ -27,12 +30,6 @@ def require_dependencies(modules: Iterable[str]) -> None:
             + ", ".join(missing)
             + ". Install them with `pip install -r requirements.txt`."
         )
-import json
-import logging
-import math
-from pathlib import Path
-
-LOGGER = logging.getLogger(__name__)
 
 
 def _fallback_smoke_run() -> None:
@@ -115,36 +112,18 @@ def main() -> None:
             config.train.persistent_workers,
             config.train.prefetch_factor,
         ),
-    try:
-        import numpy as np
-        import torch
-        from config import ExperimentConfig
-        from dataset import CavyaaDataset, make_loader
-        from evaluation import evaluate, predict
-        from model import CavyaaModel
-        from preprocessing import Preprocessor, feature_columns, split_by_patient
-        from synthetic_data import load_or_generate
-        from trainer import Trainer
-        from utils import configure_logging, count_parameters, get_device, save_json, set_seed
-        from visualization import plot_classification, plot_feature_importance, plot_history, plot_latent
-    except ModuleNotFoundError as exc:
-        print(f"Scientific dependency unavailable ({exc.name}); running dependency-free smoke verification.")
-        _fallback_smoke_run()
-        return
-
-    configure_logging()
-    config = ExperimentConfig()
-    set_seed(config.train.seed)
-    device = get_device()
-    LOGGER.info("Using device: %s", device)
-    frame = load_or_generate(config.data)
-    train_frame, val_frame, test_frame = split_by_patient(frame, config.train.val_fraction, config.train.test_fraction, config.train.seed)
-    preprocessor = Preprocessor.fit(train_frame)
-    train_arrays, val_arrays, test_arrays = preprocessor.transform(train_frame), preprocessor.transform(val_frame), preprocessor.transform(test_frame)
-    loaders = {
-        "train": make_loader(CavyaaDataset(train_arrays), config.train.batch_size, True, config.train.num_workers),
-        "val": make_loader(CavyaaDataset(val_arrays), config.train.batch_size, False, config.train.num_workers),
-        "test": make_loader(CavyaaDataset(test_arrays), config.train.batch_size, False, config.train.num_workers),
+        "val": make_loader(
+            CavyaaDataset(val_arrays),
+            config.train.batch_size,
+            False,
+            config.train.num_workers,
+        ),
+        "test": make_loader(
+            CavyaaDataset(test_arrays),
+            config.train.batch_size,
+            False,
+            config.train.num_workers,
+        ),
     }
     model = CavyaaModel(config.model)
     if config.train.compile_model and hasattr(torch, "compile"):
@@ -160,7 +139,6 @@ def main() -> None:
         {"history": history, "test_metrics": test_metrics, "checkpoint": str(checkpoint)},
         config.artifacts_dir / "metrics.json",
     )
-    save_json({"history": history, "test_metrics": test_metrics, "checkpoint": str(checkpoint)}, config.artifacts_dir / "metrics.json")
     plot_history(history, config.viz)
     plot_classification(labels, probabilities, config.viz)
     plot_latent(latents, labels, config.viz)

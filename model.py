@@ -45,8 +45,6 @@ class CavyaaModel(nn.Module):
                 nn.init.zeros_(module.bias)
         elif isinstance(module, nn.Embedding):
             nn.init.normal_(module.weight, mean=0.0, std=0.02)
-            nn.Linear(config.latent_dim, config.hidden_dim), nn.GELU(), nn.Dropout(config.dropout), nn.Linear(config.hidden_dim, 1)
-        )
 
     def set_grl_lambda(self, value: float) -> None:
         """Update adversarial domain strength."""
