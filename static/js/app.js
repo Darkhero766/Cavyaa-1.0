@@ -1,5 +1,10 @@
 // CAVYAA app interactions
 
+// Register service worker for installable PWA
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   animateScoreRing();
   animateProgressBars();

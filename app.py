@@ -229,5 +229,14 @@ def logout():
     session.clear()
     return redirect(url_for("landing"))
 
+@app.route("/sw.js")
+def service_worker():
+    """Serve SW from root so its scope covers the entire app."""
+    resp = send_from_directory("static", "sw.js",
+                               mimetype="application/javascript")
+    resp.headers["Service-Worker-Allowed"] = "/"
+    resp.headers["Cache-Control"] = "no-cache"
+    return resp
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
