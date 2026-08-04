@@ -14,35 +14,52 @@
 </head>
 <body>
 <div class="app-shell" style="min-height:100vh;">
+  <div class="orb-3"></div>
   <div class="phone-frame" style="overflow-y:auto;">
     <div class="doctor-shell">
 
-      <!-- Doctor top bar -->
+      <!-- Top bar -->
       <div class="doctor-top anim-fade-up">
         <div class="doctor-greeting">
-          <div style="font-size:12px;color:rgba(255,255,255,0.5);font-weight:600;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:4px;">CAVYAA Portal</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.45);font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:5px;display:flex;align-items:center;gap:6px;">
+            <!-- Microscope SVG -->
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 18h4M8 21h8M12 18v3M9 3h6v2H9zM10 5h4v6h-4z"/>
+              <circle cx="12" cy="14" r="3"/>
+            </svg>
+            CAVYAA Portal
+          </div>
           <div class="doctor-greeting-name">Patient Overview</div>
-          <div class="doctor-greeting-sub">{{ total }} patients · Model AUC {{ avg_auc }}</div>
+          <div class="doctor-greeting-sub">
+            <span data-count="{{ total }}">{{ total }}</span> patients · Model AUC {{ avg_auc }}
+          </div>
         </div>
-        <a href="/logout" class="logout-btn">Sign out</a>
+        <a href="/logout" class="logout-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
+          </svg>
+          Sign out
+        </a>
       </div>
 
-      <!-- Stats row -->
+      <!-- Stats row with animated counters -->
       <div class="stats-row anim-fade-up delay-1">
         <div class="stat-card">
-          <div class="stat-num">{{ total }}</div>
+          <div class="stat-num" data-count="{{ total }}">{{ total }}</div>
           <div class="stat-lbl">Total</div>
         </div>
         <div class="stat-card">
-          <div class="stat-num" style="color:#FCA5A5;">{{ high_risk }}</div>
+          <div class="stat-num" style="color:#FCA5A5;" data-count="{{ high_risk }}">{{ high_risk }}</div>
           <div class="stat-lbl">High Risk</div>
         </div>
         <div class="stat-card">
-          <div class="stat-num" style="color:#FDE68A;">{{ medium_risk }}</div>
+          <div class="stat-num" style="color:#FDE68A;" data-count="{{ medium_risk }}">{{ medium_risk }}</div>
           <div class="stat-lbl">Monitor</div>
         </div>
         <div class="stat-card">
-          <div class="stat-num">{{ avg_score }}</div>
+          <div class="stat-num" data-count="{{ avg_score }}">{{ avg_score }}</div>
           <div class="stat-lbl">Avg Score</div>
         </div>
       </div>
@@ -50,38 +67,53 @@
       <!-- White sheet -->
       <div class="doctor-sheet anim-scale-in delay-1">
 
-        <!-- Filters -->
-        <div class="section-header" style="margin-bottom:12px;">
+        <div class="section-header" style="margin-bottom:14px;">
           <div class="section-title">Patients</div>
-          <span style="font-size:12px;color:var(--text-soft);">Tap to view analysis</span>
+          <span style="font-size:12px;color:var(--text-soft);display:flex;align-items:center;gap:5px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+            </svg>
+            Tap to view analysis
+          </span>
         </div>
 
+        <!-- Filter chips with colored CSS dots (no emoji) -->
         <div class="filter-row">
           <button class="filter-chip active" data-filter="all" data-group="risk">All</button>
-          <button class="filter-chip" data-filter="high" data-group="risk">🔴 High Risk</button>
-          <button class="filter-chip" data-filter="medium" data-group="risk">🟡 Monitor</button>
-          <button class="filter-chip" data-filter="low" data-group="risk">🟢 Stable</button>
+          <button class="filter-chip" data-filter="high" data-group="risk">
+            <span class="chip-dot" style="background:#EF4444;"></span>High Risk
+          </button>
+          <button class="filter-chip" data-filter="medium" data-group="risk">
+            <span class="chip-dot" style="background:#F59E0B;"></span>Monitor
+          </button>
+          <button class="filter-chip" data-filter="low" data-group="risk">
+            <span class="chip-dot" style="background:#10B981;"></span>Stable
+          </button>
         </div>
 
         <!-- Patient cards -->
         {% for p in patients %}
         <a href="/doctor/patient/{{ p.id }}" class="patient-card anim-fade-up delay-{{ loop.index }}"
            data-risk="{{ p.risk_level }}">
-          <div class="patient-avatar bg-{{ p.risk_level }}">
-            {{ p.name[0] }}
-          </div>
+          <div class="patient-avatar bg-{{ p.risk_level }}">{{ p.name[0] }}</div>
           <div class="patient-info">
             <div class="patient-name">{{ p.name }}</div>
-            <div class="patient-meta">
-              {{ p.cancer_type }} · Wk {{ p.weeks_post_op }}
+            <div class="patient-meta">{{ p.cancer_type }} · Wk {{ p.weeks_post_op }}</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
+              <span class="risk-badge risk-{{ p.risk_level }}">
+                <span class="risk-dot"></span>{{ p.risk_level | title }} Risk
+              </span>
+              <span class="trend-indicator {{ 'trend-up' if p.trend == 'improving' else ('trend-down' if p.trend == 'declining' else 'trend-flat') }}">
+                {% if p.trend == 'improving' %}
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+                {% elif p.trend == 'declining' %}
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+                {% else %}
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg>
+                {% endif %}
+                {{ p.trend | title }}
+              </span>
             </div>
-            <span class="risk-badge risk-{{ p.risk_level }}">
-              {{ p.risk_level | title }} Risk
-            </span>
-            <span class="trend-arrow {{ 'trend-up' if p.trend == 'improving' else ('trend-down' if p.trend == 'declining' else 'trend-flat') }}">
-              {{ '↑' if p.trend == 'improving' else ('↓' if p.trend == 'declining' else '→') }}
-              {{ p.trend | title }}
-            </span>
           </div>
           <div class="patient-score-wrap">
             <div class="patient-score">{{ p.wellness_score }}</div>
@@ -90,33 +122,48 @@
         </a>
         {% endfor %}
 
-        <!-- Model info -->
+        <!-- Model info card -->
         <div class="divider"></div>
         <div class="card" style="background:linear-gradient(135deg,#0D47A1,#1E88E5);color:white;">
-          <div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:rgba(255,255,255,0.65);">Model Performance</div>
-          <div style="font-size:18px;font-weight:800;margin-top:6px;">CAVYAA 1.0 — Research Prototype</div>
-          <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:4px;line-height:1.5;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.7">
+              <path d="M9 3h6v2H9zM10 5h4v6h-4z"/><circle cx="12" cy="14" r="3"/>
+              <path d="M6 21h12"/>
+            </svg>
+            <span style="font-size:10px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.6);">Model Performance</span>
+          </div>
+          <div style="font-size:18px;font-weight:800;">CAVYAA 1.0 — Research Prototype</div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.65);margin-top:4px;line-height:1.6;">
             Synthetic data only · Mean ROC AUC {{ avg_auc }}<br>
             β-VAE + Cross-modal fusion · 5 cancer types
           </div>
-          <div style="margin-top:14px;display:flex;gap:16px;">
+          <div style="margin-top:16px;display:flex;gap:20px;">
             <div>
-              <div style="font-size:20px;font-weight:900;">{{ avg_auc }}</div>
-              <div style="font-size:10px;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.04em;">Mean AUC</div>
+              <div style="font-size:22px;font-weight:900;letter-spacing:-0.02em;">{{ avg_auc }}</div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:0.05em;">Mean AUC</div>
             </div>
             <div>
-              <div style="font-size:20px;font-weight:900;">5</div>
-              <div style="font-size:10px;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.04em;">Cancer Types</div>
+              <div style="font-size:22px;font-weight:900;">5</div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:0.05em;">Cancer Types</div>
             </div>
             <div>
-              <div style="font-size:20px;font-weight:900;">10k</div>
-              <div style="font-size:10px;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.04em;">Synthetic Pts</div>
+              <div style="font-size:22px;font-weight:900;">10k</div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:0.05em;">Synthetic Pts</div>
             </div>
           </div>
         </div>
 
-        <div style="margin-top:14px; padding:14px; background:#FEF2F2; border-radius:14px; font-size:11px; color:#991B1B; line-height:1.5;">
-          ⚠️ CAVYAA 1.0 uses synthetic research data only. Not for clinical use. All metrics are algorithm-development outputs, not clinical diagnoses.
+        <!-- Disclaimer -->
+        <div class="warning-card red">
+          <span class="warning-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+          </span>
+          CAVYAA 1.0 uses synthetic research data only. Not for clinical use. All metrics are algorithm-development outputs, not clinical diagnoses.
         </div>
 
       </div><!-- doctor-sheet -->
